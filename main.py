@@ -53,3 +53,5 @@ if __name__ == "__main__":
     my_yandex.make_dir(directory)
     print(my_yandex.upload_by_url('https://img2.goodfon.ru/original/1366x768/f/f7/kotyata-ryzhie-podstavka.jpg',
                                   directory))
+    my_vk = VK(vk_token)
+
