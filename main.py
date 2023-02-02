@@ -1,6 +1,7 @@
 import requests
 import configparser
-
+from pprint import pprint
+import time
 
 class YandexDisk:
 
@@ -10,7 +11,7 @@ class YandexDisk:
     def make_dir(self, dir_name):
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'OAuth {}'.format(self.token)
+            'Authorization': f'OAuth {self.token}'
         }
         # проверяю наличие каталога с заданным именем, если его нет, создаю
         params = {'path': f'disk:/{dir_name}'}
@@ -23,7 +24,7 @@ class YandexDisk:
     def upload_by_url(self, source, destination):
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'OAuth {}'.format(self.token)
+            'Authorization': f'OAuth {self.token}'
         }
         url = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
         destination = f'{destination}/filename.jpg'
@@ -43,15 +44,22 @@ class VK:
     def __init__(self, token: str):
         self.token = token
 
+    def get_user_info(self, user_id):
+        url = 'https://api.vk.com/method/users.get'
+        params = {'user_ids': user_id,
+                  'access_token': self.token,
+                  'v': '5.131'
+                  }
+        res = requests.get(url, params=params)
+        return res.json()
 
 if __name__ == "__main__":
-    yandex_token = read_config('config.ini', 'Tokens', 'YandexToken')
-    vk_token = read_config('config.ini', 'Tokens', 'VKToken')
+    yandex_token = read_config('tokens.ini', 'Tokens', 'YandexToken')
+    vk_token = read_config('tokens.ini', 'Tokens', 'VKToken')
     directory = read_config('config.ini', 'Path', 'Directory')
     vk_id = ('config.ini', 'ID', 'VK_ID')
-    my_yandex = YandexDisk(yandex_token)
-    my_yandex.make_dir(directory)
-    print(my_yandex.upload_by_url('https://img2.goodfon.ru/original/1366x768/f/f7/kotyata-ryzhie-podstavka.jpg',
-                                  directory))
+    # my_yandex = YandexDisk(yandex_token)
+    # my_yandex.make_dir(directory)
+    # print(my_yandex.upload_by_url('https://img2.goodfon.ru/original/1366x768/f/f7/kotyata-ryzhie-podstavka.jpg', directory))
     my_vk = VK(vk_token)
-
+    pprint(my_vk.get_user_info(vk_id))
