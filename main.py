@@ -1,10 +1,10 @@
-import sys
 import requests
 import configparser
 from time import sleep
 from datetime import datetime
 from sys import exit
 import json
+
 
 class YandexDisk:
 
@@ -32,8 +32,7 @@ class YandexDisk:
         url = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
         destination = f'{destination}'
         params = {'path': destination, 'url': source}
-        res = requests.post(url=url, headers=headers, params=params)
-        return res
+        return requests.post(url=url, headers=headers, params=params)
 
 
 def read_config(path, section, parameter):
@@ -64,11 +63,11 @@ class VK:
                   'access_token': self.token,
                   'v': '5.131'
                   }
-        res = requests.get(url, params=params)
-        if 'error' in res.json():
+        res_photos = requests.get(url, params=params)
+        if 'error' in res_photos.json():
             print(f'User {user_id} not exists')
             exit()
-        return res.json()['response']['items'], res.json()['response']['count']
+        return res_photos.json()['response']['items'], res_photos.json()['response']['count']
 
 
 if __name__ == "__main__":
@@ -81,30 +80,34 @@ if __name__ == "__main__":
     max_images = int(read_config('config.ini', 'Main', 'MaxImages'))
 
     my_yandex = YandexDisk(yandex_token)
-    my_yandex.make_dir(directory)
     my_vk = VK(vk_token)
 
     size_list = []
-    image_types='wzyxms'
-    # print(my_yandex.upload_by_url('https://img2.goodfon.ru/original/1366x768/f/f7/kotyata-ryzhie-podstavka.jpg', directory))
-        # pprint(my_vk.get_user_info(vk_id))
+    image_types = 'wzyxms'
+    my_yandex.make_dir(directory)
 
-    result, images_count = my_vk.get_user_photos(vk_id)
-    result = result[:min(len(result), max_images)]
+    # читаю список фоток, обрезаю лишние
+    profile_photos, images_count = my_vk.get_user_photos(vk_id)
+    profile_photos = profile_photos[:min(len(profile_photos), max_images)]
 
-    for image_set in result:
+    for index, image_set in enumerate(profile_photos):
         likes = str(image_set['likes']['count'])
         image_date = datetime.utcfromtimestamp(image_set['date']).strftime('%Y-%m-%d')
+
+        # читаю доступные размеры фотографии
         [size_list.append(image['type']) for image in image_set['sizes']]
-        print(size_list)
+
+        # выбираю наибольший размер и загружаю на Я.Д.
         for image_type in image_types:
             if image_type in size_list:
                 position = size_list.index(image_type)
-                # now = datetime.datetime.now()
-                # file_extension = image_set['sizes'][position]['url']
-                res = my_yandex.upload_by_url(image_set['sizes'][position]['url'], f'{directory}/{image_date} - {likes}.jpg')
-                print(res)
+                source_path = image_set['sizes'][position]['url']
+                destination_path = f'{directory}/{image_date} - {likes}.jpg'
+                res = my_yandex.upload_by_url(source_path, destination_path)
+                if res.status_code > 299:
+                    print(f'({index + 1}/{max_images}) Error uploading file {image_date} - {likes}.jpg')
+                else:
+                    print(f'({index + 1}/{max_images}) File {image_date} - {likes}.jpg uploaded successfully')
                 sleep(0.4)
                 size_list.clear()
                 break
-
