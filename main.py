@@ -1,9 +1,8 @@
 import sys
-
 import requests
 import configparser
-# from pprint import pprint
-import datetime
+from time import sleep
+from datetime import datetime
 from sys import exit
 import json
 
@@ -48,14 +47,15 @@ class VK:
     def __init__(self, token: str):
         self.token = token
 
-    def get_user_info(self, user_id):
-        url = 'https://api.vk.com/method/users.get'
-        params = {'user_ids': user_id,
-                  'access_token': self.token,
-                  'v': '5.131'
-                  }
-        res = requests.get(url, params=params)
-        return res.json()
+    # def get_user_info(self, user_id):
+    #     url = 'https://api.vk.com/method/users.get'
+    #     params = {'user_ids': user_id,
+    #               'access_token': self.token,
+    #               'v': '5.131'
+    #               }
+    #     res = requests.get(url, params=params)
+    #     return res.json()
+
     def get_user_photos(self, user_id):
         url = 'https://api.vk.com/method/photos.get'
         params = {'owner_id': user_id,
@@ -67,7 +67,7 @@ class VK:
         res = requests.get(url, params=params)
         if 'error' in res.json():
             print(f'User {user_id} not exists')
-            sys.exit()
+            exit()
         return res.json()['response']['items'], res.json()['response']['count']
 
 
@@ -94,14 +94,15 @@ if __name__ == "__main__":
 
     for image_set in result:
         likes = str(image_set['likes']['count'])
+        image_date = datetime.utcfromtimestamp(image_set['date']).strftime('%Y-%m-%d')
         [size_list.append(image['type']) for image in image_set['sizes']]
         print(size_list)
         for image_type in image_types:
             if image_type in size_list:
                 position = size_list.index(image_type)
-                now = datetime.datetime.now()
-                file_extension = image_set['sizes'][position]['url']
-                # my_yandex.upload_by_url(image_set['sizes'][position]['url'], f'{directory}/{now.strftime("%d-%m-%Y %H.%M")} - {likes}.jpg')
-                print(f'{directory}/{now.strftime("%d-%m-%Y %H.%M")} - {likes}.jpg')
+                # now = datetime.datetime.now()
+                # file_extension = image_set['sizes'][position]['url']
+                my_yandex.upload_by_url(image_set['sizes'][position]['url'], f'{directory}/{image_date} - {likes}.jpg')
+                sleep(0.4)
                 break
         size_list.clear()
