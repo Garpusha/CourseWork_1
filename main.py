@@ -76,20 +76,25 @@ if __name__ == "__main__":
     # считываю переменные из конфигов
     yandex_token = read_config('tokens.ini', 'Tokens', 'YandexToken')
     vk_token = read_config('tokens.ini', 'Tokens', 'VKToken')
-    directory = read_config('config.ini', 'Path', 'YandexDirectory')
-    vk_id = read_config('config.ini', 'ID', 'VK_UserID')
+    directory = read_config('config.ini', 'Main', 'YandexDirectory')
+    vk_id = read_config('config.ini', 'Main', 'VK_UserID')
+    max_images = int(read_config('config.ini', 'Main', 'MaxImages'))
 
     my_yandex = YandexDisk(yandex_token)
     my_yandex.make_dir(directory)
     my_vk = VK(vk_token)
 
+    size_list = []
+
     # print(my_yandex.upload_by_url('https://img2.goodfon.ru/original/1366x768/f/f7/kotyata-ryzhie-podstavka.jpg', directory))
         # pprint(my_vk.get_user_info(vk_id))
 
     result, images_count = my_vk.get_user_photos(vk_id)
-    if images_count > 5:
-        images_count = 5
+    result = result[:min(len(result), max_images)]
+    likes
+    for image_set in result:
+        [size_list.append(image['type']) for image in image_set['sizes']]
+        print(size_list)
+        for index, item in enumerate(size_list):
 
-    for index in range(0, images_count):
-        print(result[index]['id'])
-
+        size_list.clear()
