@@ -1,7 +1,11 @@
+import sys
+
 import requests
 import configparser
 from pprint import pprint
 import time
+from sys import exit
+import json
 
 class YandexDisk:
 
@@ -61,17 +65,31 @@ class VK:
                   'v': '5.131'
                   }
         res = requests.get(url, params=params)
-        return res.json()
+        if 'error' in res.json():
+            print(f'User {user_id} not exists')
+            sys.exit()
+        return res.json()['response']['items'], res.json()['response']['count']
 
 
 if __name__ == "__main__":
+
+    # считываю переменные из конфигов
     yandex_token = read_config('tokens.ini', 'Tokens', 'YandexToken')
     vk_token = read_config('tokens.ini', 'Tokens', 'VKToken')
-    directory = read_config('config.ini', 'Path', 'Directory')
+    directory = read_config('config.ini', 'Path', 'YandexDirectory')
     vk_id = read_config('config.ini', 'ID', 'VK_UserID')
-    # my_yandex = YandexDisk(yandex_token)
-    # my_yandex.make_dir(directory)
-    # print(my_yandex.upload_by_url('https://img2.goodfon.ru/original/1366x768/f/f7/kotyata-ryzhie-podstavka.jpg', directory))
+
+    my_yandex = YandexDisk(yandex_token)
+    my_yandex.make_dir(directory)
     my_vk = VK(vk_token)
-    # pprint(my_vk.get_user_info(vk_id))
-    pprint(my_vk.get_user_photos(vk_id))
+
+    # print(my_yandex.upload_by_url('https://img2.goodfon.ru/original/1366x768/f/f7/kotyata-ryzhie-podstavka.jpg', directory))
+        # pprint(my_vk.get_user_info(vk_id))
+
+    result, images_count = my_vk.get_user_photos(vk_id)
+    if images_count > 5:
+        images_count = 5
+
+    for index in range(0, images_count):
+        print(result[index]['id'])
+
