@@ -2,8 +2,8 @@ import sys
 
 import requests
 import configparser
-from pprint import pprint
-import time
+# from pprint import pprint
+import datetime
 from sys import exit
 import json
 
@@ -85,16 +85,23 @@ if __name__ == "__main__":
     my_vk = VK(vk_token)
 
     size_list = []
-
+    image_types='wzyxms'
     # print(my_yandex.upload_by_url('https://img2.goodfon.ru/original/1366x768/f/f7/kotyata-ryzhie-podstavka.jpg', directory))
         # pprint(my_vk.get_user_info(vk_id))
 
     result, images_count = my_vk.get_user_photos(vk_id)
     result = result[:min(len(result), max_images)]
-    likes
+
     for image_set in result:
+        likes = str(image_set['likes']['count'])
         [size_list.append(image['type']) for image in image_set['sizes']]
         print(size_list)
-        for index, item in enumerate(size_list):
-
+        for image_type in image_types:
+            if image_type in size_list:
+                position = size_list.index(image_type)
+                now = datetime.datetime.now()
+                file_extension = image_set['sizes'][position]['url']
+                # my_yandex.upload_by_url(image_set['sizes'][position]['url'], f'{directory}/{now.strftime("%d-%m-%Y %H.%M")} - {likes}.jpg')
+                print(f'{directory}/{now.strftime("%d-%m-%Y %H.%M")} - {likes}.jpg')
+                break
         size_list.clear()
