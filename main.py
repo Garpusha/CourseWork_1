@@ -30,7 +30,7 @@ class YandexDisk:
             'Authorization': f'OAuth {self.token}'
         }
         url = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
-        destination = f'{destination}/filename.jpg'
+        destination = f'{destination}'
         params = {'path': destination, 'url': source}
         res = requests.post(url=url, headers=headers, params=params)
         return res
@@ -102,7 +102,9 @@ if __name__ == "__main__":
                 position = size_list.index(image_type)
                 # now = datetime.datetime.now()
                 # file_extension = image_set['sizes'][position]['url']
-                my_yandex.upload_by_url(image_set['sizes'][position]['url'], f'{directory}/{image_date} - {likes}.jpg')
+                res = my_yandex.upload_by_url(image_set['sizes'][position]['url'], f'{directory}/{image_date} - {likes}.jpg')
+                print(res)
                 sleep(0.4)
+                size_list.clear()
                 break
-        size_list.clear()
+
