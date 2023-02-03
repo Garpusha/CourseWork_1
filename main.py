@@ -46,15 +46,6 @@ class VK:
     def __init__(self, token: str):
         self.token = token
 
-    # def get_user_info(self, user_id):
-    #     url = 'https://api.vk.com/method/users.get'
-    #     params = {'user_ids': user_id,
-    #               'access_token': self.token,
-    #               'v': '5.131'
-    #               }
-    #     res = requests.get(url, params=params)
-    #     return res.json()
-
     def get_user_photos(self, user_id):
         url = 'https://api.vk.com/method/photos.get'
         params = {'owner_id': user_id,
@@ -85,11 +76,14 @@ if __name__ == "__main__":
     size_list = []
     image_types = 'wzyxms'
     my_yandex.make_dir(directory)
+    json_data = []
+    errors, success = 0, 0
 
     # читаю список фоток, обрезаю лишние
     profile_photos, images_count = my_vk.get_user_photos(vk_id)
     profile_photos = profile_photos[:min(len(profile_photos), max_images)]
 
+    print('Upload to Yandex.Disk started')
     for index, image_set in enumerate(profile_photos):
         likes = str(image_set['likes']['count'])
         image_date = datetime.utcfromtimestamp(image_set['date']).strftime('%Y-%m-%d')
@@ -104,10 +98,21 @@ if __name__ == "__main__":
                 source_path = image_set['sizes'][position]['url']
                 destination_path = f'{directory}/{image_date} - {likes}.jpg'
                 res = my_yandex.upload_by_url(source_path, destination_path)
+                json_data.append({'file_name': f'{image_date} - {likes}.jpg',
+                                 'size': image_type})
                 if res.status_code > 299:
                     print(f'({index + 1}/{max_images}) Error uploading file {image_date} - {likes}.jpg')
+                    errors += 1
                 else:
-                    print(f'({index + 1}/{max_images}) File {image_date} - {likes}.jpg uploaded successfully')
+                    print(f'({index + 1}/{max_images}) File \'{image_date} - {likes}.jpg\' uploaded successfully')
+                    success += 1
                 sleep(0.4)
                 size_list.clear()
                 break
+
+        with open('result.json', 'w') as my_json:
+            json.dump(json_data, my_json, indent=2)
+    print(f'Upload complete. {success} files uploaded to Yandex.Disk, errors - {errors}')
+
+    print('result.json created')
+
