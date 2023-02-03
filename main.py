@@ -34,6 +34,13 @@ class YandexDisk:
         params = {'path': destination, 'url': source}
         return requests.post(url=url, headers=headers, params=params)
 
+    def check_status(self, operation_url):
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'OAuth {self.token}'
+        }
+        return requests.get(url=operation_url, headers=headers).json()['status']
+
 
 def read_config(path, section, parameter):
     config = configparser.ConfigParser()
@@ -69,6 +76,7 @@ if __name__ == "__main__":
     directory = read_config('config.ini', 'Main', 'YandexDirectory')
     vk_id = read_config('config.ini', 'Main', 'VK_UserID')
     max_images = int(read_config('config.ini', 'Main', 'MaxImages'))
+    sleep_time = int(read_config('config.ini', 'Main', 'SleepTime'))
 
     my_yandex = YandexDisk(yandex_token)
     my_vk = VK(vk_token)
@@ -77,8 +85,7 @@ if __name__ == "__main__":
     image_types = 'wzyxms'
     my_yandex.make_dir(directory)
     json_data = []
-    errors, success = 0, 0
-
+    errors, success, in_progress = 0, 0, 0
     # читаю список фоток, обрезаю лишние
     profile_photos, images_count = my_vk.get_user_photos(vk_id)
     profile_photos = profile_photos[:min(len(profile_photos), max_images)]
@@ -98,21 +105,26 @@ if __name__ == "__main__":
                 source_path = image_set['sizes'][position]['url']
                 destination_path = f'{directory}/{image_date} - {likes}.jpg'
                 res = my_yandex.upload_by_url(source_path, destination_path)
-                json_data.append({'file_name': f'{image_date} - {likes}.jpg',
-                                 'size': image_type})
+                status_url = res.json()['href']
                 if res.status_code > 299:
                     print(f'({index + 1}/{max_images}) Error uploading file {image_date} - {likes}.jpg')
+                else:
+                    print(f'({index + 1}/{max_images}) File \'{image_date} - {likes}.jpg\' upload in progress')
+                sleep(sleep_time)
+                result = my_yandex.check_status(status_url)
+                if result == 'success':
+                    json_data.append({'file_name': f'{image_date} - {likes}.jpg',
+                                 'size': image_type})
+                    success += 1
+                elif result == 'failed':
                     errors += 1
                 else:
-                    print(f'({index + 1}/{max_images}) File \'{image_date} - {likes}.jpg\' uploaded successfully')
-                    success += 1
-                sleep(0.4)
+                    in_progress += 1
                 size_list.clear()
                 break
-
         with open('result.json', 'w') as my_json:
             json.dump(json_data, my_json, indent=2)
-    print(f'Upload complete. {success} files uploaded to Yandex.Disk, errors - {errors}')
-
+    print(f'Upload complete. {success} files uploaded to Yandex.Disk, {in_progress} in progress, errors - {errors}')
     print('result.json created')
+
 
