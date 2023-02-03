@@ -113,8 +113,7 @@ if __name__ == "__main__":
                 sleep(sleep_time)
                 result = my_yandex.check_status(status_url)
                 if result == 'success':
-                    json_data.append({'file_name': f'{image_date} - {likes}.jpg',
-                                 'size': image_type})
+                    json_data.append({'file_name': f'{image_date} - {likes}.jpg', 'size': image_type})
                     success += 1
                 elif result == 'failed':
                     errors += 1
@@ -126,5 +125,3 @@ if __name__ == "__main__":
             json.dump(json_data, my_json, indent=2)
     print(f'Upload complete. {success} files uploaded to Yandex.Disk, {in_progress} in progress, errors - {errors}')
     print('result.json created')
-
-
