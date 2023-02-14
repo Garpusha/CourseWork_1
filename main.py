@@ -10,36 +10,40 @@ class YandexDisk:
 
     def __init__(self, token: str):
         self.token = token
-
-    def make_dir(self, dir_name):
-        headers = {
+        self.headers = {
             'Content-Type': 'application/json',
             'Authorization': f'OAuth {self.token}'
         }
+
+    def make_dir(self, dir_name):
+        # headers = {
+        #     'Content-Type': 'application/json',
+        #     'Authorization': f'OAuth {self.token}'
+        # }
         # проверяю наличие каталога с заданным именем, если его нет, создаю
         params = {'path': f'disk:/{dir_name}'}
         url = 'https://cloud-api.yandex.net/v1/disk/resources/'
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(url, headers=self.headers, params=params)
         if response.status_code == 404:
             params = {'path': f'disk:/{dir_name}'}
-            requests.put(url, headers=headers, params=params)
+            requests.put(url, headers=self.headers, params=params)
 
     def upload_by_url(self, source, destination):
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'OAuth {self.token}'
-        }
+        # headers = {
+        #     'Content-Type': 'application/json',
+        #     'Authorization': f'OAuth {self.token}'
+        # }
         url = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
         destination = f'{destination}'
         params = {'path': destination, 'url': source}
-        return requests.post(url=url, headers=headers, params=params)
+        return requests.post(url=url, headers=self.headers, params=params)
 
     def check_status(self, operation_url):
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'OAuth {self.token}'
-        }
-        return requests.get(url=operation_url, headers=headers).json()['status']
+        # headers = {
+        #     'Content-Type': 'application/json',
+        #     'Authorization': f'OAuth {self.token}'
+        # }
+        return requests.get(url=operation_url, headers=self.headers).json()['status']
 
 
 def read_config(path, section, parameter):
@@ -52,6 +56,7 @@ def read_config(path, section, parameter):
 class VK:
     def __init__(self, token: str):
         self.token = token
+
 
     def get_user_photos(self, user_id):
         url = 'https://api.vk.com/method/photos.get'
@@ -66,6 +71,7 @@ class VK:
             print(f'User {user_id} not exists')
             exit()
         return res_photos.json()['response']['items'], res_photos.json()['response']['count']
+
 
 
 if __name__ == "__main__":
